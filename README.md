@@ -10,4 +10,7 @@ To start the HTTP server on port 8080:
 go run .
 ```
 
-The server returns the string `hello`.
+## API
+
+- `GET /` returns `hello`.
+- `GET /render` opens a websocket that doesn't do anything.
