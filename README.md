@@ -4,11 +4,14 @@ A Golang experiment.
 
 ## Usage
 
-To start the HTTP server on port 8080:
-
 ```bash
 go run .
 ```
+
+This will:
+
+1. Render the Mandelbrot Set at `render.png`.
+1. Start the HTTP server on port 8080.
 
 ## API
 
