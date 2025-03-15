@@ -1,6 +1,6 @@
 # gandelbrot
 
-A Golang experiment.
+A Mandelbrot Set explorer.
 
 ## Usage
 
@@ -8,12 +8,4 @@ A Golang experiment.
 go run .
 ```
 
-This will:
-
-1. Render the Mandelbrot Set at `render.png`.
-1. Start the HTTP server on port 8080.
-
-## API
-
-- `GET /` returns `hello`.
-- `GET /render` opens a websocket that doesn't do anything.
+Open [localhost:8080](http://localhost:8080) to start browsing.

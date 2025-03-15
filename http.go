@@ -1,48 +1,52 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"math"
 	"net/http"
-
-	"github.com/gorilla/websocket"
+	"strconv"
 )
 
+type Tile struct {
+	x int
+	y int
+	z int
+}
+
 func attachHttpHandlers() {
-	var upgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
-
-	http.HandleFunc("/", rootHandler)
-	http.HandleFunc("/render", func(w http.ResponseWriter, r *http.Request) {
-		websocket, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		listenForRenderRequests(websocket)
-	})
+	http.Handle("/", http.FileServer(http.Dir("frontend")))
+	http.HandleFunc("/tiles/{z}/{x}/{y}", tilesHandler)
 }
 
-func listenForRenderRequests(conn *websocket.Conn) {
-	for {
-		messageType, content, err := conn.ReadMessage()
+func readIntParam(r *http.Request, p string) int {
+	s := r.PathValue(p)
+	i, err := strconv.Atoi(s)
 
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Printf("/render received: %s\n", string(content))
-
-		response := fmt.Sprintf("TODO: Render and return image here.")
-
-		if err := conn.WriteMessage(messageType, []byte(response)); err != nil {
-			log.Fatal(err)
-		}
+	if err != nil {
+		log.Printf("Failed to convert %s=%s to int\n", p, s)
 	}
+
+	return i
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "hello")
+func readTile(r *http.Request) Tile {
+	region := new(Tile)
+	region.x = readIntParam(r, "x")
+	region.y = readIntParam(r, "y")
+	region.z = readIntParam(r, "z")
+	return *region
+}
+
+func tilesHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "image/png")
+
+	region := readTile(r)
+	planeLength := 4.0 / math.Pow(2, float64(region.z))
+	xMin := (planeLength * float64(region.x)) - 2.0
+	xMax := xMin + planeLength
+	yMin := (planeLength * float64(region.y)) - 2.0
+	yMax := yMin + planeLength
+
+	renderTile(xMin, xMax, yMin, yMax, w)
 }

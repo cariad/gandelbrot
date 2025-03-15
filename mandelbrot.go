@@ -4,11 +4,14 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"io"
 	"log"
-	"os"
 )
 
-const baseZoom = 3.5
+const (
+	maxIterations = 800
+	tileLength    = 400
+)
 
 func countIterations(px, py float64, maximum int) int {
 	count := 0
@@ -35,81 +38,32 @@ func countIterations(px, py float64, maximum int) int {
 	}
 }
 
-func iterationsToColour(count int, minCount int, countRange float64) uint8 {
-	return uint8((1 - (float64(count-minCount) / countRange)) * 255)
-}
-
-func pixelToPlane(px int, pxMax float64, plMin float64, plMax float64) float64 {
-	i := float64(px) / pxMax
+func pixelToPlane(px, plMin, plMax float64) float64 {
+	i := px / float64(tileLength)
 	return ((1 - i) * plMin) + (i * plMax)
 }
 
-func render(width int, height int, zoom float64, filename string) {
-	const maxIterations = 100
-	const centerX = -0.5
-	const centerY = 0.0
+func renderTile(xMin, xMax, yMin, yMax float64, writer io.Writer) {
+	img := image.NewRGBA(image.Rect(0, 0, tileLength, tileLength))
 
-	widthF := float64(width)
-	heightF := float64(height)
+	for y := range tileLength {
+		py := pixelToPlane(float64(y), yMin, yMax)
 
-	ratio := heightF / widthF
-
-	xWidth := baseZoom / zoom
-	xMin := centerX - (xWidth / 2)
-	xMax := centerX + (xWidth / 2)
-
-	yHeight := xWidth * ratio
-	yMin := centerY - (yHeight / 2)
-	yMax := centerY + (yHeight / 2)
-
-	counts := make([]int, width*height)
-
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
-
-	minCount := maxIterations
-	maxCount := 0
-
-	for y := range height {
-		indexOffset := y * width
-		py := pixelToPlane(y, heightF, yMin, yMax)
-
-		for x := range width {
-			px := pixelToPlane(x, widthF, xMin, xMax)
+		for x := range tileLength {
+			px := pixelToPlane(float64(x), xMin, xMax)
 			count := countIterations(px, py, maxIterations)
-			counts[x+indexOffset] = count
-			minCount = min(count, minCount)
-			maxCount = max(count, maxCount)
-		}
-	}
-
-	iterationsDelta := float64(maxCount - minCount)
-
-	for y := range height {
-		indexOffset := y * width
-
-		for x := range width {
-			value := iterationsToColour(
-				counts[x+indexOffset],
-				minCount,
-				iterationsDelta,
-			)
+			colorValue := uint8((1 - (float64(count) / maxIterations)) * 255)
 
 			img.Set(x, y, color.NRGBA{
-				R: value,
-				G: value,
-				B: value,
+				R: colorValue,
+				G: colorValue,
+				B: colorValue,
 				A: 255,
 			})
 		}
 	}
 
-	file, err := os.Create(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := png.Encode(file, img); err != nil {
-		file.Close()
+	if err := png.Encode(writer, img); err != nil {
 		log.Fatal(err)
 	}
 }
