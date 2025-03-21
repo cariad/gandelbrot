@@ -13,9 +13,20 @@ type Tile struct {
 	z int
 }
 
+func addHeaders(w http.ResponseWriter) {
+	w.Header().Set("Cache-Control", "immutable, max-age=86400, no-transform, public")
+}
+
 func attachHttpHandlers() {
-	http.Handle("/", http.FileServer(http.Dir("frontend")))
+	http.Handle("/", handleRoot())
 	http.HandleFunc("/tiles/{z}/{x}/{y}", tilesHandler)
+}
+
+func handleRoot() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		addHeaders(w)
+		http.FileServer(http.Dir("frontend")).ServeHTTP(w, r)
+	}
 }
 
 func readIntParam(r *http.Request, p string) int {
@@ -38,8 +49,9 @@ func readTile(r *http.Request) Tile {
 }
 
 func tilesHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+	addHeaders(w)
 	w.Header().Set("Content-Type", "image/png")
+	w.WriteHeader(http.StatusOK)
 
 	region := readTile(r)
 	planeLength := 4.0 / math.Pow(2, float64(region.z))
