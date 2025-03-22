@@ -30,12 +30,16 @@ func main() {
     log.Fatal(err)
   }
 
-  gandelbrot.Render(&gandelbrot.RenderArgs{
+  args := &RenderArgs{
     Real:         -2.5,
     Imaginary:    -2,
     ComplexWidth: 4.0,
     Writer:       file,
-  })
+  }
+
+  if err := Render(args); err != nil {
+    log.Fatal(err)
+  }
 
   if err := file.Close(); err != nil {
     log.Fatal(err)
