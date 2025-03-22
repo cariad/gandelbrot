@@ -131,7 +131,7 @@ func worker(args *workerArgs) {
 	}
 }
 
-func Render(args *RenderArgs) {
+func Render(args *RenderArgs) error {
 	normalizeRenderArgs(args)
 
 	start := time.Now()
@@ -192,8 +192,9 @@ func Render(args *RenderArgs) {
 	waitGroup.Wait()
 
 	if err := png.Encode(args.Writer, img); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	log.Printf("rendered in %f seconds\n", time.Since(start).Seconds())
+	return nil
 }
