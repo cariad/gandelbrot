@@ -13,10 +13,10 @@ func TestRender(t *testing.T) {
 	}
 
 	Render(&RenderArgs{
-		real:         -2.5,
-		imaginary:    -2,
-		complexWidth: 4.0,
-		writer:       file,
+		Real:         -2.5,
+		Imaginary:    -2,
+		ComplexWidth: 4.0,
+		Writer:       file,
 	})
 
 	if err := file.Close(); err != nil {

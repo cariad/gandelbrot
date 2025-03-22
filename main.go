@@ -110,8 +110,8 @@ func worker(args *workerArgs) {
 				count := countIterations(
 					real,
 					imaginary,
-					args.renderArgs.maxIterations,
-					args.renderArgs.maxOrbitLength,
+					args.renderArgs.MaxIterations,
+					args.renderArgs.MaxOrbitLength,
 				)
 
 				colorValue := uint8((1 - (float64(count) / args.maxIterationsF)) * 255)
@@ -137,43 +137,43 @@ func Render(args *RenderArgs) {
 	start := time.Now()
 
 	img := image.NewRGBA(
-		image.Rect(0, 0, args.renderWidth, args.renderWidth),
+		image.Rect(0, 0, args.RenderWidth, args.RenderWidth),
 	)
 
 	blocksChannel := make(chan block)
 	waitGroup := new(sync.WaitGroup)
 
-	blockRoot := calculateBlockRoot(args.renderWidth)
+	blockRoot := calculateBlockRoot(args.RenderWidth)
 	blockCount := blockRoot * blockRoot
 	waitGroup.Add(blockCount)
 
-	blockPixelWidth := args.renderWidth / blockRoot
-	blockComplexWidth := args.complexWidth / float64(blockRoot)
+	blockPixelWidth := args.RenderWidth / blockRoot
+	blockComplexWidth := args.ComplexWidth / float64(blockRoot)
 
 	workerArgs := &workerArgs{
 		blockChannel:   blocksChannel,
 		blockWidth:     blockPixelWidth,
 		blockWidthF:    float64(blockPixelWidth),
 		img:            img,
-		maxIterationsF: float64(args.maxIterations),
+		maxIterationsF: float64(args.MaxIterations),
 		renderArgs:     args,
 		waitGroup:      waitGroup,
 	}
 
-	for range args.threadCount {
+	for range args.ThreadCount {
 		go worker(workerArgs)
 	}
 
 	for blockX := range blockRoot {
 		blockXF := float64(blockX)
-		minReal := args.real + (blockComplexWidth * blockXF)
+		minReal := args.Real + (blockComplexWidth * blockXF)
 		maxReal := minReal + blockComplexWidth
 		x := workerArgs.blockWidth * blockX
 
 		for blockY := range blockRoot {
 			blockYF := float64(blockY)
 
-			minImaginary := args.imaginary + (blockComplexWidth * blockYF)
+			minImaginary := args.Imaginary + (blockComplexWidth * blockYF)
 			maxImaginary := minImaginary + blockComplexWidth
 
 			blocksChannel <- block{
@@ -191,7 +191,7 @@ func Render(args *RenderArgs) {
 	close(blocksChannel)
 	waitGroup.Wait()
 
-	if err := png.Encode(args.writer, img); err != nil {
+	if err := png.Encode(args.Writer, img); err != nil {
 		log.Fatal(err)
 	}
 

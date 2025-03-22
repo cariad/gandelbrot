@@ -2,17 +2,17 @@
 
 ![render.png](render.png)
 
-A Golang module that renders the Mandelbrot Set.
+A Golang package that renders the Mandelbrot Set.
 
 ## Usage
 
-Install the module:
+Install the package:
 
 ```bash
-go install github.com/cariad/gandelbrot
+go get github.com/cariad/gandelbrot
 ```
 
-In code, construct a `RenderArgs` and pass it to `Render()`:
+In code, construct a `gandelbrot.RenderArgs` and pass it to `gandelbrot.Render()`:
 
 ```go
 package main
@@ -20,6 +20,8 @@ package main
 import (
   "log"
   "os"
+
+  "github.com/cariad/gandelbrot"
 )
 
 func main() {
@@ -28,11 +30,11 @@ func main() {
     log.Fatal(err)
   }
 
-  Render(&RenderArgs{
-    real:         -2.5,
-    imaginary:    -2,
-    complexWidth: 4.0,
-    writer:       file,
+  gandelbrot.Render(&gandelbrot.RenderArgs{
+    Real:         -2.5,
+    Imaginary:    -2,
+    ComplexWidth: 4.0,
+    Writer:       file,
   })
 
   if err := file.Close(); err != nil {
