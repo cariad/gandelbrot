@@ -1,5 +1,7 @@
 package gandelbrot
 
+import "io"
+
 // Render arguments.
 type RenderArgs struct {
 	// The real (x) component of the top-left coordinate to render. Required.
@@ -8,9 +10,11 @@ type RenderArgs struct {
 	// The imaginary (y) component of the top-left coordinate to render. Required.
 	imaginary float64
 
-	// The length of the side of the square in the complex plane to render.
-	// Required.
-	complexLength float64
+	// The width of the square in the complex plane to render. Required.
+	complexWidth float64
+
+	// The writer to send the rendered image to.
+	writer io.Writer
 
 	// The maximum number of iterations to calculate for each point before
 	// bailing. Omit or set <=0 for a sensible default.
@@ -20,9 +24,9 @@ type RenderArgs struct {
 	// detection. Set to <=0 for a sensible default.
 	maxOrbitLength int
 
-	// The length of the side of the square bitmap to render. Omit or set <=0 for
-	// a sensible default.
-	renderLength int
+	// The width of the square bitmap to render. Omit or set <=0 for a sensible
+	// default.
+	renderWidth int
 
 	// The number of worker threads perform calculations in. Omit or set <=0 for a
 	// sensible default.
@@ -38,8 +42,8 @@ func normalizeRenderArgs(args *RenderArgs) {
 		args.maxOrbitLength = 50
 	}
 
-	if args.renderLength <= 0 {
-		args.renderLength = 600
+	if args.renderWidth <= 0 {
+		args.renderWidth = 600
 	}
 
 	if args.threadCount < 1 {
